@@ -21,7 +21,7 @@ from eduwisp_school.models import (
     StudentEnrollment,
     TeachingAssignment,
 )
-from eduwisp_school.queries import classes_for_teacher, students_for_guardian
+from eduwisp_school.queries import classes_for_teacher, linked_students, students_for_guardian
 from eduwisp_users.models import Membership, Organization, Role
 
 from .vista import RUOLI, SESSION_RUOLO, apri_vedi_come, chiudi_vedi_come, vista_corrente
@@ -304,8 +304,19 @@ def famiglia(request):
                 "relazione": relazione,
             }
         )
+    # Maggiorenni senza consenso: solo il nome, nessun dato (ADR-0018).
+    visibili = {f.pk for f in figli}
+    maggiorenni = [
+        s
+        for s in linked_students(vista.user).filter(organization=vista.organization)
+        if s.pk not in visibili
+    ]
     return render(
         request,
         "eduwisp_portal/famiglia.html",
-        {"schede": schede, "limite": timezone.now() - timedelta(hours=ORE_SENZA_CONTATTO)},
+        {
+            "schede": schede,
+            "maggiorenni": maggiorenni,
+            "limite": timezone.now() - timedelta(hours=ORE_SENZA_CONTATTO),
+        },
     )

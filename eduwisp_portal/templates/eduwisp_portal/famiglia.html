@@ -13,6 +13,14 @@
   <ul>{% for d in s.dispositivi %}<li>{% include "eduwisp_portal/_dispositivo.html" %}</li>{% empty %}<li>Nessun dispositivo personale: in classe si usano dispositivi condivisi.</li>{% endfor %}</ul>
 </section>
 {% empty %}
+{% if not maggiorenni %}
 <p>Nessuno studente collegato al tuo account. Se pensi sia un errore, rivolgiti alla segreteria.</p>
+{% endif %}
+{% endfor %}
+{% for s in maggiorenni %}
+<section class="scheda">
+  <h2>{{ s.display_name }}</h2>
+  <p><strong>È maggiorenne.</strong> I suoi dati sono visibili ai familiari solo se lo consente dal proprio tablet; può cambiare idea in qualsiasi momento.</p>
+</section>
 {% endfor %}
 {% endblock %}

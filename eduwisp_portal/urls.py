@@ -22,5 +22,7 @@ urlpatterns = [
     path("preside/", views.preside, name="preside"),
     path("docente/", views.docente, name="docente"),
     path("classe/<int:pk>/", views.classe, name="classe"),
+    path("classe/<int:pk>/sblocca/", views.sblocca_app, name="sblocca_app"),
+    path("sblocco/<int:pk>/termina/", views.termina_sblocco, name="termina_sblocco"),
     path("famiglia/", views.famiglia, name="famiglia"),
 ]

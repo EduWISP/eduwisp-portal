@@ -5,12 +5,23 @@
 from datetime import timedelta
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from eduwisp_apps.models import TemporaryUnlock
+from eduwisp_apps.unlocks import (
+    DURATE_MINUTI,
+    active_unlocks,
+    allowed_apps_for_class,
+    end_unlock,
+    unlock,
+    unlockable_apps,
+)
 from eduwisp_audit.log import record
 from eduwisp_audit.models import Action
 from eduwisp_devices.models import Device, DeviceAssignment
@@ -248,9 +259,7 @@ def docente(request):
     )
 
 
-@login_required
-def classe(request, pk):
-    vista = vista_corrente(request)
+def _classe_consentita(vista, pk):
     if vista.role == Role.SCHOOL_ADMIN:
         consentite = SchoolClass.objects.filter(organization=vista.organization)
     elif vista.role == Role.TEACHER:
@@ -260,6 +269,13 @@ def classe(request, pk):
     c = consentite.select_related("section", "school_year").filter(pk=pk).first()
     if c is None:
         _fuori_ambito(vista, f"classe {pk}")
+    return c
+
+
+@login_required
+def classe(request, pk):
+    vista = vista_corrente(request)
+    c = _classe_consentita(vista, pk)
     studenti = Student.objects.filter(enrollments__school_class=c).order_by("display_name")
     assegnazioni = (
         DeviceAssignment.objects.filter(school_class=c, ended_at__isnull=True)
@@ -275,8 +291,53 @@ def classe(request, pk):
             "studenti": [(s, personali.get(s.pk)) for s in studenti],
             "condivisi": [a.device for a in assegnazioni if not a.student_id],
             "limite": timezone.now() - timedelta(hours=ORE_SENZA_CONTATTO),
+            "app_consentite": allowed_apps_for_class(c).order_by("name"),
+            "sblocchi": active_unlocks(c),
+            "app_sbloccabili": unlockable_apps(c).order_by("name")
+            if vista.role == Role.TEACHER
+            else [],
+            "durate": DURATE_MINUTI,
         },
     )
+
+
+@login_required
+@require_POST
+def sblocca_app(request, pk):
+    """Il docente sblocca un'app del catalogo per una delle sue classi (ADR-0019)."""
+    vista = _vista_con_ruolo(request, Role.TEACHER)
+    c = _classe_consentita(vista, pk)
+    app = unlockable_apps(c).filter(pk=request.POST.get("app") or 0).first()
+    try:
+        minuti = int(request.POST.get("minuti", 0))
+    except ValueError:
+        minuti = 0
+    if app is None or minuti not in DURATE_MINUTI:
+        messages.error(request, "Scegli un'app e una durata.")
+    else:
+        try:
+            unlock(vista.user, c, app, minuti)
+            messages.success(request, f"{app.name} sbloccata per {minuti} minuti.")
+        except (PermissionDenied, ValidationError) as e:
+            messages.error(request, " ".join(getattr(e, "messages", [str(e)])))
+    return redirect("eduwisp_portal:classe", pk=c.pk)
+
+
+@login_required
+@require_POST
+def termina_sblocco(request, pk):
+    vista = _vista_con_ruolo(request, Role.TEACHER)
+    sblocco = (
+        TemporaryUnlock.objects.select_related("school_class", "app")
+        .filter(pk=pk, organization=vista.organization)
+        .first()
+    )
+    if sblocco is None:
+        _fuori_ambito(vista, f"sblocco {pk}")
+    c = _classe_consentita(vista, sblocco.school_class_id)
+    end_unlock(vista.user, sblocco)
+    messages.success(request, f"{sblocco.app.name} di nuovo bloccata.")
+    return redirect("eduwisp_portal:classe", pk=c.pk)
 
 
 @login_required

@@ -5,6 +5,28 @@
 <p><a href="{% url 'eduwisp_portal:home' %}">← Torna alle classi</a></p>
 <h1>Classe {{ classe }}</h1>
 <p class="sottotitolo">{{ classe.section.track|default:"" }} · anno scolastico {{ classe.school_year.label }}</p>
+<h2>App</h2>
+<p>Consentite sempre in questa classe: {% for a in app_consentite %}{{ a.name }}{% if not forloop.last %}, {% endif %}{% empty %}nessuna app indicata dalla scuola{% endfor %}.</p>
+{% if sblocchi %}
+<table>
+  <thead><tr><th>Sbloccata ora</th><th>Fino alle</th><th>Da</th><th></th></tr></thead>
+  <tbody>
+  {% for s in sblocchi %}
+    <tr><td>{{ s.app.name }}</td><td>{{ s.ends_at|time:"H:i" }}</td><td>{{ s.teacher.get_full_name|default:s.teacher.username|default:"—" }}</td>
+    <td>{% if vista.role == "teacher" %}<form method="post" action="{% url 'eduwisp_portal:termina_sblocco' s.pk %}">{% csrf_token %}<button type="submit">Blocca ora</button></form>{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% if app_sbloccabili %}
+<form method="post" action="{% url 'eduwisp_portal:sblocca_app' classe.pk %}" class="filtri">
+  {% csrf_token %}
+  <label>Sblocca per la lezione <select name="app" required><option value="">scegli un'app</option>{% for a in app_sbloccabili %}<option value="{{ a.pk }}">{{ a.name }}</option>{% endfor %}</select></label>
+  <label>per <select name="minuti">{% for m in durate %}<option value="{{ m }}"{% if m == 60 %} selected{% endif %}>{% if m < 60 %}{{ m }} minuti{% else %}{% widthratio m 60 1 %} or{% if m == 60 %}a{% else %}e{% endif %}{% endif %}</option>{% endfor %}</select></label>
+  <button type="submit">Sblocca</button>
+</form>
+<p class="sottotitolo">Lo sblocco vale solo per i tablet di questa classe, si chiude da solo alla scadenza (anche senza rete) ed è registrato.</p>
+{% endif %}
 <h2>Studenti ({{ studenti|length }})</h2>
 <table>
   <thead><tr><th>Studente</th><th>Dispositivo personale</th></tr></thead>

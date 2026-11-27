@@ -20,7 +20,7 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
-          for repo in eduwisp-protocol eduwisp-users eduwisp-audit eduwisp-school eduwisp-devices; do
+          for repo in eduwisp-protocol eduwisp-users eduwisp-audit eduwisp-school eduwisp-devices eduwisp-apps; do
             ref=main
             if git ls-remote --exit-code --heads "https://github.com/EduWISP/$repo" "$BRANCH" >/dev/null; then
               ref="$BRANCH"

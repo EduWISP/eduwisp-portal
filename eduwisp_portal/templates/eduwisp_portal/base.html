@@ -45,6 +45,7 @@
   {% endif %}
 </header>
 <main>
+{% if messages %}<div class="messaggi">{% for m in messages %}<p class="{% if m.tags == 'error' %}errore{% else %}conferma{% endif %}" role="status">{{ m }}</p>{% endfor %}</div>{% endif %}
 {% block content %}{% endblock %}
 </main>
 <footer>

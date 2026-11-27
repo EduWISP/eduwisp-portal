@@ -40,3 +40,4 @@ main form button { margin-top: 1em; }
 .errore { background: #fee2e2; color: #991b1b; padding: .5em 1em; border-radius: 4px; }
 .accesso { max-width: 24em; }
 footer { text-align: center; color: var(--tenue); font-size: .85em; padding: 1em 2em 2em; }
+.conferma { background: #d1fae5; color: #065f46; padding: .5em 1em; border-radius: 4px; }

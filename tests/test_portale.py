@@ -127,3 +127,19 @@ def test_chi_ha_piu_ruoli_sceglie(client, scuola):
     client.post("/ruolo/", {"membership": m.pk})
     assert client.get("/", follow=True).request["PATH_INFO"] == "/famiglia/"
     assert Guardian.objects.filter(user=docente).count() == 0
+
+
+def test_famiglia_e_figlio_maggiorenne(client, scuola):
+    from datetime import date
+
+    figlio = scuola["figlio"]
+    figlio.adult_on = date(2000, 1, 1)
+    figlio.save()
+    client.force_login(scuola["genitore"])
+    testo = client.get("/famiglia/").content.decode()
+    assert "Rossi Anna" in testo and "È maggiorenne" in testo
+    assert "Dispositivi della scuola" not in testo
+    figlio.family_access_granted = True
+    figlio.save()
+    testo = client.get("/famiglia/").content.decode()
+    assert "Dispositivi della scuola" in testo and "È maggiorenne" not in testo

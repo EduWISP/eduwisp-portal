@@ -1,0 +1,14 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Accedi{% endblock %}
+{% block content %}
+<h1>Accedi a EduWISP</h1>
+<form method="post" class="accesso">
+  {% csrf_token %}
+  {% if form.errors %}<p class="errore" role="alert">Nome utente o password non corretti.</p>{% endif %}
+  <label for="id_username">Nome utente</label>{{ form.username }}
+  <label for="id_password">Password</label>{{ form.password }}
+  <input type="hidden" name="next" value="{{ next }}">
+  <button type="submit">Accedi</button>
+</form>
+{% endblock %}

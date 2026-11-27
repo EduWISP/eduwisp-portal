@@ -1,0 +1,55 @@
+# publiccode.yml — metadati per il catalogo Developers Italia / metadata for the Developers Italia catalogue
+publiccodeYmlVersion: "0"
+
+name: eduwisp-portal
+url: "https://github.com/EduWISP/eduwisp-portal"
+landingURL: "https://eduwisp.org/docs/decisioni/0018-interfaccia-per-ruoli/"
+platforms:
+  - web
+  - linux
+
+categories:
+  - it-management
+  - it-asset-management
+
+developmentStatus: development
+softwareType: "addon"
+
+intendedAudience:
+  scope:
+    - education
+  countries:
+    - IT
+
+description:
+  it:
+    shortDescription: "EduWISP — Interfaccia per ruoli"
+    longDescription: "Interfaccia web per dirigente, docenti e famiglie, con area dell'amministratore di sistema e «vedi come» in sola lettura e registrato. Fa parte di EduWISP, piattaforma open source e gratuita per la gestione dei dispositivi digitali di proprietà delle scuole, con MDM, gestione scolastica, Family Control e prevenzione del cyberbullismo. Il progetto è nelle prime fasi di sviluppo e rispetta come vincolo bloccante il GDPR e la normativa italiana su privacy e minori. Documentazione: https://eduwisp.org/docs/"
+    documentation: "https://eduwisp.org/docs/"
+    features:
+      - "Interfaccia per dirigente, docenti e famiglie"
+  en:
+    shortDescription: "EduWISP — Role-based interface"
+    longDescription: "Web interface for head teachers, teachers and families, with a platform admin area and a read-only, audited view-as. Part of EduWISP, a free and open-source platform to manage school-owned digital devices, with MDM, school management, family control and cyberbullying prevention. The project is in early development and treats GDPR and Italian law on privacy and minors as a blocking constraint. Documentation: https://eduwisp.org/docs/en/"
+    documentation: "https://eduwisp.org/docs/en/"
+    features:
+      - "Interface for head teachers, teachers and families"
+
+legal:
+  license: AGPL-3.0-or-later
+  mainCopyrightOwner: Michele Salerno
+
+organisation:
+  name: EduWISP
+  uri: "https://github.com/EduWISP"
+
+maintenance:
+  type: community
+  contacts:
+    - name: Michele Salerno
+
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - it
+    - en

@@ -1,0 +1,27 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Amministrazione{% endblock %}
+{% block content %}
+<h1>Amministrazione della piattaforma</h1>
+<p class="sottotitolo">Visibile solo agli amministratori di sistema. Tutti gli istituti e tutte le impostazioni.</p>
+<div class="azioni">
+  <a class="pulsante" href="{% url 'admin:eduwisp_users_organization_add' %}">Aggiungi un istituto</a>
+  <a class="pulsante secondario" href="{% url 'admin:index' %}">Impostazioni e dati</a>
+  <a class="pulsante secondario" href="{% url 'admin:eduwisp_audit_auditevent_changelist' %}">Registro delle operazioni</a>
+</div>
+<h2>Istituti</h2>
+<table>
+  <thead><tr><th>Istituto</th><th>Stato</th><th class="num">Classi</th><th class="num">Studenti</th><th class="num">Dispositivi</th><th></th></tr></thead>
+  <tbody>
+  {% for r in istituti %}
+    <tr><td>{{ r.istituto.name }}</td><td>{% if r.istituto.is_active %}<span class="stato ok">attivo</span>{% else %}<span class="stato">disattivato</span>{% endif %}</td>
+    <td class="num">{{ r.classi }}</td><td class="num">{{ r.studenti }}</td><td class="num">{{ r.dispositivi }}</td>
+    <td><a href="{% url 'admin:eduwisp_users_organization_change' r.istituto.pk %}">Configura</a></td></tr>
+  {% empty %}<tr><td colspan="6">Nessun istituto: aggiungine uno.</td></tr>{% endfor %}
+  </tbody>
+</table>
+<h2>Persone</h2>
+<ul>{% for etichetta, n in persone %}<li>{{ etichetta }}: {{ n }}</li>{% endfor %}<li>Amministratori IT degli istituti: {{ amministratori_it }}</li></ul>
+<h2>Vedi come</h2>
+<p>Dal menu <strong>Vedi come</strong> in alto puoi vedere l'interfaccia come la vede un dirigente, un docente o una famiglia: <strong>in sola lettura</strong>, con l'avviso sempre visibile e la registrazione nel registro delle operazioni.</p>
+{% endblock %}

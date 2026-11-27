@@ -1,0 +1,5 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% if d %}{{ d.display_name }} ·
+{% if d.compliant is None %}<span class="stato">stato sconosciuto</span>{% elif d.compliant %}<span class="stato ok">conforme</span>{% else %}<span class="stato ko">non conforme</span>{% endif %}
+· {% if d.last_seen_at %}<span class="{% if d.last_seen_at < limite %}stato attenzione{% endif %}">ultimo contatto {{ d.last_seen_at|timesince }} fa</span>{% else %}mai collegato{% endif %}
+{% else %}—{% endif %}

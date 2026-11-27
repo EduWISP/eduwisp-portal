@@ -1,0 +1,25 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Vedi come{% endblock %}
+{% block content %}
+<h1>Vedi come: {{ ruolo_label }}</h1>
+<p class="sottotitolo">Vedrai l'interfaccia di questa persona in <strong>sola lettura</strong>. Inizio e fine vengono registrati.</p>
+<form method="get" class="filtri">
+  <input type="hidden" name="ruolo" value="{{ ruolo }}">
+  <label>Istituto <select name="istituto"><option value="">tutti</option>{% for o in istituti %}<option value="{{ o.pk }}"{% if istituto == o.pk|stringformat:"s" %} selected{% endif %}>{{ o.name }}</option>{% endfor %}</select></label>
+  <label>Cerca <input type="search" name="cerca" value="{{ cerca }}" placeholder="nome o cognome"></label>
+  <button type="submit">Filtra</button>
+</form>
+{% if errore %}<p class="errore" role="alert">{{ errore }}</p>{% endif %}
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="ruolo" value="{{ ruolo }}">
+  <label for="persona">Persona ({{ totale }}{% if troncato %}, mostrate le prime {{ persone|length }}: usa la ricerca{% endif %})</label>
+  <select id="persona" name="membership" size="12" required>
+    {% for m in persone %}<option value="{{ m.pk }}">{{ m.user.last_name }} {{ m.user.first_name }}{% if not m.user.last_name %}{{ m.user.username }}{% endif %} — {{ m.organization.name }}</option>{% endfor %}
+  </select>
+  <label for="motivo">Motivo{% if demo %} (facoltativo nell'ambiente di prova){% endif %}</label>
+  <input id="motivo" name="motivo" type="text" maxlength="200" {% if not demo %}required {% endif %}placeholder="per esempio: richiesta di assistenza n. 123">
+  <button type="submit">Vedi come questa persona</button>
+</form>
+{% endblock %}

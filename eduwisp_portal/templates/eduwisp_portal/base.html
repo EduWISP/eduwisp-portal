@@ -1,0 +1,57 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% load static %}<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}EduWISP{% endblock %} · EduWISP</title>
+  <link rel="stylesheet" href="{% static 'eduwisp_portal/portal.css' %}">
+</head>
+<body>
+{% if eduwisp_environment_notice %}<div class="avviso-ambiente" role="alert">{{ eduwisp_environment_notice }}</div>{% endif %}
+{% if vista.vedi_come %}
+<div class="banner-vedi-come" role="status">
+  <span>👁 <strong>Stai vedendo come</strong> {{ vista.user.get_full_name|default:vista.user.username }} · {{ vista.role_label }} · {{ vista.organization }}. <strong>Sola lettura</strong>, accesso registrato{% if vista.motivo %} (motivo: {{ vista.motivo }}){% endif %}.</span>
+  <form method="post" action="{% url 'eduwisp_portal:vedi_come_esci' %}">{% csrf_token %}<button type="submit">Esci dalla vista</button></form>
+</div>
+{% endif %}
+<header class="testata">
+  <a class="marchio" href="{% url 'eduwisp_portal:home' %}">EduWISP</a>
+  {% if user.is_authenticated %}
+  <nav>
+    {% if user.is_superuser and not vista.vedi_come %}
+      <a href="{% url 'eduwisp_portal:amministrazione' %}">Amministrazione</a>
+      <a href="{% url 'admin:index' %}">Impostazioni</a>
+      <form class="menu-vedi-come" method="get" action="{% url 'eduwisp_portal:vedi_come' %}">
+        <label for="ruolo-vedi-come">Vedi come</label>
+        <select id="ruolo-vedi-come" name="ruolo">
+          {% for valore, etichetta in ruoli_vedi_come %}<option value="{{ valore }}">{{ etichetta }}</option>{% endfor %}
+        </select>
+        <button type="submit">Scegli</button>
+      </form>
+    {% elif mie_appartenenze|length > 1 %}
+      <form method="post" action="{% url 'eduwisp_portal:ruolo' %}">{% csrf_token %}
+        <label for="mio-ruolo">Ruolo</label>
+        <select id="mio-ruolo" name="membership">{% for m in mie_appartenenze %}<option value="{{ m.pk }}"{% if m.pk == vista.membership.pk %} selected{% endif %}>{{ m.get_role_display|capfirst }} · {{ m.organization }}</option>{% endfor %}</select>
+        <button type="submit">Cambia</button>
+      </form>
+    {% elif vista.organization %}
+      <span class="contesto">{{ vista.role_label }} · {{ vista.organization }}</span>
+    {% endif %}
+    {% if not vista.vedi_come %}
+    <form method="post" action="{% url 'eduwisp_portal:esci' %}">{% csrf_token %}<button type="submit" class="link">Esci ({{ user.username }})</button></form>
+    {% endif %}
+  </nav>
+  {% endif %}
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>
+  {# Attribuzione obbligatoria: AGPL-3.0 sezione 7(b) e codice sorgente: sezione 13. Vedi NOTICE.md #}
+  Basato su EduWISP — <a href="https://github.com/EduWISP">https://github.com/EduWISP</a>
+  · Software libero con licenza <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0-or-later</a>
+  · <a href="https://github.com/EduWISP">Codice sorgente</a>
+</footer>
+</body>
+</html>

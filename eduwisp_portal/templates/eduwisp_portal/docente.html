@@ -1,0 +1,17 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Le mie classi{% endblock %}
+{% block content %}
+<h1>Le classi di {{ vista.user.get_full_name|default:vista.user.username }}</h1>
+<p class="sottotitolo">Solo le classi dei propri incarichi nell'anno in corso.</p>
+<h2>Incarichi</h2>
+<ul class="incarichi">
+{% for i in incarichi %}
+  <li>{% if i.subject %}{{ i.subject }}{% else %}{{ i.get_kind_display|capfirst }}{% endif %} — {% if i.school_class %}{{ i.school_class }}{% else %}sezione {{ i.section.name }} (tutte le classi){% endif %}{% if i.subject and i.kind != "curricolare" %} · {{ i.get_kind_display }}{% endif %}</li>
+{% empty %}
+  <li>Nessun incarico nell'anno in corso.</li>
+{% endfor %}
+</ul>
+<h2>Classi</h2>
+{% include "eduwisp_portal/_classi.html" %}
+{% endblock %}

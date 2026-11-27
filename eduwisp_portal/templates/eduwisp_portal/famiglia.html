@@ -1,0 +1,18 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Famiglia{% endblock %}
+{% block content %}
+<h1>I tuoi figli</h1>
+<p class="sottotitolo">Solo i figli a cui sei collegato in questo istituto.</p>
+{% for s in schede %}
+<section class="scheda">
+  <h2>{{ s.studente.display_name }}</h2>
+  <p>Classe: {% if s.classe %}{{ s.classe }}{% else %}—{% endif %}
+  {% if s.relazione %} · relazione: {{ s.relazione.get_kind_display }}{% if s.relazione.is_primary %} (referente){% endif %}{% endif %}</p>
+  <h3>Dispositivi della scuola affidati</h3>
+  <ul>{% for d in s.dispositivi %}<li>{% include "eduwisp_portal/_dispositivo.html" %}</li>{% empty %}<li>Nessun dispositivo personale: in classe si usano dispositivi condivisi.</li>{% endfor %}</ul>
+</section>
+{% empty %}
+<p>Nessuno studente collegato al tuo account. Se pensi sia un errore, rivolgiti alla segreteria.</p>
+{% endfor %}
+{% endblock %}

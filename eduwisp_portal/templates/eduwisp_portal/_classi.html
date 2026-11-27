@@ -1,0 +1,18 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+<table>
+  <thead><tr><th>Classe</th><th>Indirizzo</th><th class="num">Studenti</th><th class="num">Dispositivi</th><th class="num">Non conformi</th><th class="num">Senza contatto da 24 ore</th></tr></thead>
+  <tbody>
+  {% for r in righe %}
+    <tr>
+      <td><a href="{% url 'eduwisp_portal:classe' r.classe.pk %}">{{ r.classe }}</a></td>
+      <td>{{ r.classe.section.track|default:"—" }}</td>
+      <td class="num">{{ r.studenti }}</td>
+      <td class="num">{{ r.dispositivi }}</td>
+      <td class="num">{% if r.non_conformi %}<span class="stato ko">{{ r.non_conformi }}</span>{% else %}0{% endif %}</td>
+      <td class="num">{% if r.senza_contatto %}<span class="stato attenzione">{{ r.senza_contatto }}</span>{% else %}0{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">Nessuna classe.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>

@@ -1,0 +1,15 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Istituto{% endblock %}
+{% block content %}
+<h1>{{ vista.organization }}</h1>
+<p class="sottotitolo">Vista del dirigente: tutto l'istituto, anno scolastico in corso.</p>
+<div class="riquadri">
+  <div class="riquadro"><span class="valore">{{ righe|length }}</span> classi</div>
+  <div class="riquadro"><span class="valore">{{ totali.studenti }}</span> studenti</div>
+  <div class="riquadro"><span class="valore">{{ docenti }}</span> docenti</div>
+  <div class="riquadro"><span class="valore">{{ totali.dispositivi }}</span> dispositivi</div>
+  <div class="riquadro"><span class="valore">{{ totali.non_conformi }}</span> non conformi</div>
+</div>
+{% include "eduwisp_portal/_classi.html" %}
+{% endblock %}

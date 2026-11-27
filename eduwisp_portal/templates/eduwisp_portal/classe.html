@@ -1,0 +1,21 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Classe {{ classe }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'eduwisp_portal:home' %}">← Torna alle classi</a></p>
+<h1>Classe {{ classe }}</h1>
+<p class="sottotitolo">{{ classe.section.track|default:"" }} · anno scolastico {{ classe.school_year.label }}</p>
+<h2>Studenti ({{ studenti|length }})</h2>
+<table>
+  <thead><tr><th>Studente</th><th>Dispositivo personale</th></tr></thead>
+  <tbody>
+  {% for s, d in studenti %}
+    <tr><td>{{ s.display_name }}</td><td>{% include "eduwisp_portal/_dispositivo.html" %}</td></tr>
+  {% empty %}<tr><td colspan="2">Nessuno studente iscritto.</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% if condivisi %}
+<h2>Dispositivi condivisi della classe ({{ condivisi|length }})</h2>
+<ul>{% for d in condivisi %}<li>{% include "eduwisp_portal/_dispositivo.html" %}</li>{% endfor %}</ul>
+{% endif %}
+{% endblock %}

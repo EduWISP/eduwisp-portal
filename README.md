@@ -34,12 +34,14 @@ L'amministratore di sistema sceglie dal menu a tendina un ruolo (dirigente, doce
 
 ```python
 INSTALLED_APPS += ["eduwisp_audit", "eduwisp_portal"]
-MIDDLEWARE += ["eduwisp_portal.middleware.SolaLetturaVediComeMiddleware"]  # dopo sessioni e autenticazione
+MIDDLEWARE += [
+    "eduwisp_portal.middleware.SolaLetturaVediComeMiddleware"
+]  # dopo sessioni e autenticazione
 TEMPLATES[0]["OPTIONS"]["context_processors"] += ["eduwisp_portal.context_processors.portale"]
 LOGIN_URL = "eduwisp_portal:accedi"
 LOGIN_REDIRECT_URL = "/"
 # urls.py
-path("", include("eduwisp_portal.urls")),
+(path("", include("eduwisp_portal.urls")),)
 ```
 
 Il ruolo [`ansible-eduwisp`](https://github.com/EduWISP/ansible-eduwisp) lo configura da solo.

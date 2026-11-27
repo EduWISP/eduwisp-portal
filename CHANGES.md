@@ -7,3 +7,4 @@
 - App consentite (ADR-0019): nella pagina della classe le app consentite e gli sblocchi attivi; il docente sblocca un'app per la lezione e la richiude, solo nelle sue classi. Nuova dipendenza: eduwisp-apps. / *Allowed apps on the class page; teachers unlock and relock apps for their classes.*
 - Account in sola lettura (gruppo `sola-lettura`, per esempio l'utente «demo» dell'ambiente di prova): vede tutto e può usare il «vedi come», ma ogni modifica è rifiutata. / *Read-only accounts (e.g. the demo user).*
 - Loghi delle app e segno «obbligatoria» nella pagina della classe (ADR-0020). / *App logos and required badge on the class page.*
+- Richieste di app (ADR-0021): elenco e dettaglio per docenti, dirigente e famiglia, parere favorevole motivato dei familiari, decisione motivata dei docenti della classe, contatore delle richieste in attesa; le regole per singolo studente non compaiono tra le app della classe. / *App requests pages.*

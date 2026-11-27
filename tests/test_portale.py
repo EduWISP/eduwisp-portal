@@ -254,3 +254,103 @@ def test_pagina_di_accesso_indica_l_utente_demo(client, db, settings):
     assert "utente <strong>demo</strong>" not in client.get("/accedi/").content.decode()
     settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
     assert "utente <strong>demo</strong>" in client.get("/accedi/").content.decode()
+
+
+@pytest.fixture
+def richiesta_anna(scuola):
+    from eduwisp_apps.models import AppRequest
+
+    return AppRequest.objects.create(
+        organization=scuola["org"],
+        student=scuola["figlio"],
+        school_class=scuola["c1a"],
+        identifier="org.example.dizionario",
+        name="Dizionario di latino",
+        note="Per le versioni",
+    )
+
+
+def test_richiesta_parere_della_famiglia_e_decisione_del_docente(client, scuola, richiesta_anna):
+    from eduwisp_apps.models import AppRule, RequestStatus
+
+    url = f"/richieste/{richiesta_anna.pk}/"
+    client.force_login(scuola["genitore"])
+    assert "Dizionario di latino" in client.get("/richieste/").content.decode()
+    r = client.post(url, {"azione": "parere", "motivo": "Le serve per latino"}, follow=True)
+    assert "Parere registrato" in r.content.decode()
+    # La famiglia non decide
+    client.post(url, {"azione": "approva", "motivo": "sì"})
+    richiesta_anna.refresh_from_db()
+    assert richiesta_anna.status == RequestStatus.IN_ATTESA
+
+    client.force_login(scuola["docente"])
+    testo = client.get("/", follow=True).content.decode()
+    assert 'class="contatore">1<' in testo
+    r = client.post(url, {"azione": "approva", "motivo": ""}, follow=True)
+    assert "La motivazione è obbligatoria" in r.content.decode()
+    r = client.post(url, {"azione": "approva", "motivo": "Utile per le versioni"}, follow=True)
+    assert "Decisione registrata" in r.content.decode()
+    richiesta_anna.refresh_from_db()
+    assert richiesta_anna.status == RequestStatus.APPROVATA
+    assert AppRule.objects.filter(student=scuola["figlio"]).exists()
+
+    # Il dirigente vede tutto, con parere e motivazione
+    client.force_login(scuola["preside"])
+    testo = client.get(url).content.decode()
+    assert "Le serve per latino" in testo and "Utile per le versioni" in testo
+
+
+def test_richiesta_fuori_ambito(client, scuola, richiesta_anna):
+    from eduwisp_apps.models import AppRequest
+
+    altra = AppRequest.objects.create(
+        organization=scuola["org"],
+        student=scuola["altro"],
+        school_class=scuola["c1b"],
+        identifier="org.example.gioco",
+    )
+    client.force_login(scuola["docente"])
+    assert client.get(f"/richieste/{altra.pk}/").status_code == 404
+    client.force_login(scuola["genitore"])
+    assert client.get(f"/richieste/{altra.pk}/").status_code == 404
+    assert "org.example.gioco" not in client.get("/richieste/").content.decode()
+
+
+def test_preside_vede_ma_non_decide(client, scuola, richiesta_anna):
+    from eduwisp_apps.models import RequestStatus
+
+    client.force_login(scuola["preside"])
+    url = f"/richieste/{richiesta_anna.pk}/"
+    assert "Approva per questo studente" not in client.get(url).content.decode()
+    client.post(url, {"azione": "approva", "motivo": "sì"})
+    richiesta_anna.refresh_from_db()
+    assert richiesta_anna.status == RequestStatus.IN_ATTESA
+
+
+def test_vedi_come_docente_non_decide(client, scuola, richiesta_anna, admin_user, settings):
+    from eduwisp_apps.models import RequestStatus
+
+    settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
+    client.force_login(admin_user)
+    client.post("/vedi-come/", {"ruolo": "teacher", "membership": scuola["m_docente"].pk})
+    url = f"/richieste/{richiesta_anna.pk}/"
+    assert "Dizionario di latino" in client.get(url).content.decode()
+    assert client.post(url, {"azione": "approva", "motivo": "sì"}).status_code == 403
+    richiesta_anna.refresh_from_db()
+    assert richiesta_anna.status == RequestStatus.IN_ATTESA
+
+
+def test_regola_per_studente_non_compare_tra_le_app_della_classe(client, scuola, catalogo):
+    from eduwisp_apps.models import App, AppRule
+
+    tts = App.objects.create(
+        organization=scuola["org"], name="Sintesi vocale", identifier="org.example.tts"
+    )
+    AppRule.objects.create(
+        organization=scuola["org"], app=tts, student=scuola["figlio"], required=True
+    )
+    client.force_login(scuola["docente"])
+    testo = client.get(f"/classe/{scuola['c1a'].pk}/").content.decode()
+    elenco = testo.split('<ul class="app-elenco">', 1)[1].split("</ul>", 1)[0]
+    # Non compare tra le app della classe né come obbligatoria: nessun legame con lo studente
+    assert "Sintesi vocale" not in elenco

@@ -25,4 +25,6 @@ urlpatterns = [
     path("classe/<int:pk>/sblocca/", views.sblocca_app, name="sblocca_app"),
     path("sblocco/<int:pk>/termina/", views.termina_sblocco, name="termina_sblocco"),
     path("famiglia/", views.famiglia, name="famiglia"),
+    path("richieste/", views.richieste, name="richieste"),
+    path("richieste/<int:pk>/", views.richiesta, name="richiesta"),
 ]

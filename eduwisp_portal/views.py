@@ -8,12 +8,19 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db.models import Count, Q
+from django.db.models import Case, Count, Q, When
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from eduwisp_apps.models import AppRule, TemporaryUnlock
+from eduwisp_apps.models import AppRule, RequestStatus, TemporaryUnlock
+from eduwisp_apps.requests import (
+    add_opinion,
+    can_decide,
+    can_give_opinion,
+    decide,
+    visible_requests,
+)
 from eduwisp_apps.unlocks import (
     DURATE_MINUTI,
     active_unlocks,
@@ -261,7 +268,9 @@ def docente(request):
 
 def obbligatorie_della_classe(c):
     """Pk delle app del catalogo dell'istituto obbligatorie per la classe (ADR-0020)."""
-    ambito = Q(track__isnull=True, school_class__isnull=True) | Q(school_class=c)
+    ambito = Q(track__isnull=True, school_class__isnull=True, student__isnull=True) | Q(
+        school_class=c
+    )
     if c.section.track_id:
         ambito |= Q(track_id=c.section.track_id)
     return set(
@@ -392,5 +401,57 @@ def famiglia(request):
             "schede": schede,
             "maggiorenni": maggiorenni,
             "limite": timezone.now() - timedelta(hours=ORE_SENZA_CONTATTO),
+        },
+    )
+
+
+# Richieste di app (ADR-0021) --------------------------------------------------------------
+
+
+def _richieste(vista):
+    if vista.role not in (Role.SCHOOL_ADMIN, Role.TEACHER, Role.GUARDIAN):
+        raise Http404
+    return visible_requests(vista.user, vista.role, vista.organization)
+
+
+@login_required
+def richieste(request):
+    vista = vista_corrente(request)
+    elenco = _richieste(vista).order_by(
+        Case(When(status=RequestStatus.IN_ATTESA, then=0), default=1), "-created_at"
+    )
+    return render(request, "eduwisp_portal/richieste.html", {"richieste": elenco[:200]})
+
+
+@login_required
+def richiesta(request, pk):
+    vista = vista_corrente(request)
+    r = _richieste(vista).filter(pk=pk).prefetch_related("opinions__guardian").first()
+    if r is None:
+        _fuori_ambito(vista, f"richiesta di app {pk}")
+    if request.method == "POST":
+        azione = request.POST.get("azione")
+        motivo = request.POST.get("motivo", "")
+        try:
+            if azione in ("approva", "respingi") and vista.role == Role.TEACHER:
+                decide(vista.user, r, azione == "approva", motivo)
+                messages.success(request, "Decisione registrata.")
+            elif azione == "parere" and vista.role == Role.GUARDIAN:
+                add_opinion(vista.user, r, motivo)
+                messages.success(request, "Parere registrato.")
+            else:
+                raise PermissionDenied
+        except ValidationError as e:
+            messages.error(request, " ".join(e.messages))
+        except PermissionDenied as e:
+            messages.error(request, str(e) or "Operazione non consentita.")
+        return redirect("eduwisp_portal:richiesta", pk=r.pk)
+    return render(
+        request,
+        "eduwisp_portal/richiesta.html",
+        {
+            "r": r,
+            "puo_decidere": vista.role == Role.TEACHER and can_decide(vista.user, r),
+            "puo_dare_parere": vista.role == Role.GUARDIAN and can_give_opinion(vista.user, r),
         },
     )

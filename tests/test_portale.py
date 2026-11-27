@@ -133,7 +133,7 @@ def test_famiglia_e_figlio_maggiorenne(client, scuola):
     from datetime import date
 
     figlio = scuola["figlio"]
-    figlio.adult_on = date(2000, 1, 1)
+    figlio.birth_date = date(1982, 1, 1)
     figlio.save()
     client.force_login(scuola["genitore"])
     testo = client.get("/famiglia/").content.decode()

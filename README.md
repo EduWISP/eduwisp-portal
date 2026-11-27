@@ -6,7 +6,7 @@
 
 Le pagine di EduWISP per **dirigente**, **docente** e **famiglia**, l'area dell'**amministratore di sistema** e il suo menu **«Vedi come»** in sola lettura ([ADR-0018](https://eduwisp.org/docs/decisioni/0018-interfaccia-per-ruoli/)).
 
-> 🧪 **Stato: prototipo v0.** Provalo su [demo.eduwisp.org](https://demo.eduwisp.org) (solo dati fittizi).
+> 🧪 **Stato: prototipo v0.** Provalo su [demo.eduwisp.org](https://demo.eduwisp.org) (solo dati fittizi) con utente **`demo`** e password **`demo`**, in sola lettura.
 
 🇬🇧 *Web pages for head teachers, teachers and families, the platform administrator area and a read-only, audited "view as" menu (ADR-0018). **Status: prototype v0.***
 

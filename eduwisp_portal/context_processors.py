@@ -7,7 +7,7 @@ from .vista import RUOLI, appartenenze, vista_corrente
 def portale(request):
     """Vista corrente e voci del menu «Vedi come» per i template del portale."""
     if not getattr(request, "user", None) or not request.user.is_authenticated:
-        return {}
+        return {"accesso_demo": _accesso_demo()}
     vista = vista_corrente(request)
     return {
         "vista": vista,
@@ -15,3 +15,14 @@ def portale(request):
         "mie_appartenenze": [] if vista.vedi_come else appartenenze(request.user),
         "ruoli_vedi_come": [(r, etichetta) for r, (etichetta, _) in RUOLI.items()],
     }
+
+
+def _accesso_demo():
+    """Nella pagina di accesso degli ambienti di prova si indica l'utente pubblico «demo»."""
+    from django.conf import settings
+    from django.contrib.auth import get_user_model
+
+    if not getattr(settings, "EDUWISP_ENVIRONMENT_NOTICE", ""):
+        return False
+    gruppo = getattr(settings, "EDUWISP_READ_ONLY_GROUP", "sola-lettura")
+    return get_user_model().objects.filter(username="demo", groups__name=gruppo).exists()

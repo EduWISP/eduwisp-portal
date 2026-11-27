@@ -242,3 +242,15 @@ def test_account_demo_in_sola_lettura(client, scuola, settings):
     assert "Stai vedendo come" in client.get("/", follow=True).content.decode()
     assert client.post("/vedi-come/esci/").status_code == 302
     assert client.post("/esci/").status_code == 302
+
+
+def test_pagina_di_accesso_indica_l_utente_demo(client, db, settings):
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import Group
+
+    assert "utente <strong>demo</strong>" not in client.get("/accedi/").content.decode()
+    demo = get_user_model().objects.create_user("demo", password="demo")
+    demo.groups.add(Group.objects.create(name="sola-lettura"))
+    assert "utente <strong>demo</strong>" not in client.get("/accedi/").content.decode()
+    settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
+    assert "utente <strong>demo</strong>" in client.get("/accedi/").content.decode()

@@ -3,6 +3,7 @@
 {% block title %}Accedi{% endblock %}
 {% block content %}
 <h1>Accedi a EduWISP</h1>
+{% if accesso_demo %}<p class="conferma">Ambiente di prova con soli dati fittizi: accedi con utente <strong>demo</strong> e password <strong>demo</strong>. L'account è in sola lettura; dal menu «Vedi come» puoi guardare l'interfaccia come dirigente, docente o famiglia.</p>{% endif %}
 <form method="post" class="accesso">
   {% csrf_token %}
   {% if form.errors %}<p class="errore" role="alert">Nome utente o password non corretti.</p>{% endif %}

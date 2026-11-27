@@ -46,3 +46,7 @@ footer { text-align: center; color: var(--tenue); font-size: .85em; padding: 1em
 .app-elenco li { display: flex; align-items: center; gap: .4em; }
 .app-elenco img { border-radius: 5px; }
 .app-segnaposto { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 5px; background: var(--blu); color: #fff; font-size: .8em; font-weight: 700; }
+.contatore { display: inline-block; min-width: 1.4em; padding: 0 .4em; border-radius: 1em; background: var(--verde); color: #04342a; font-weight: 700; text-align: center; }
+.parere, .decisione { background: #fff; border: 1px solid var(--bordo); border-radius: 6px; padding: .6em 1em; margin: .6em 0; }
+textarea { font: inherit; width: 100%; max-width: 40em; min-height: 4em; padding: .4em; border: 1px solid var(--bordo); border-radius: 4px; }
+.pulsante.respingi, button.respingi { background: #991b1b; }

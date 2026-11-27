@@ -1,0 +1,39 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Richiesta di app{% endblock %}
+{% block content %}
+<p><a href="{% url 'eduwisp_portal:richieste' %}">← Tutte le richieste</a></p>
+<h1>{{ r.name|default:r.identifier }}</h1>
+<p class="sottotitolo"><code>{{ r.identifier }}</code> · chiesta da {{ r.student.display_name }}{% if r.school_class %} ({{ r.school_class }}){% endif %} il {{ r.created_at|date:"j/n/Y H:i" }}</p>
+{% if r.note %}<p><strong>Motivazione dello studente:</strong> {{ r.note }}</p>{% endif %}
+
+<h2>Pareri della famiglia</h2>
+{% for p in r.opinions.all %}
+<div class="parere"><strong>Favorevole</strong> · {{ p.guardian.get_full_name|default:p.guardian.username }} · {{ p.created_at|date:"j/n/Y H:i" }}<br>{{ p.reason }}</div>
+{% empty %}<p>Nessun parere.</p>{% endfor %}
+{% if puo_dare_parere %}
+<form method="post">{% csrf_token %}
+  <input type="hidden" name="azione" value="parere">
+  <label for="motivo-parere">Parere favorevole: motivazione (obbligatoria)</label>
+  <textarea id="motivo-parere" name="motivo" required maxlength="1000"></textarea>
+  <button type="submit">Do parere favorevole</button>
+</form>
+{% endif %}
+
+<h2>Decisione</h2>
+{% if r.status == "pending" %}
+  <p><span class="stato attenzione">in attesa</span> Decide un docente della classe; il coordinatore e il dirigente vedono la richiesta.</p>
+  {% if puo_decidere %}
+  <form method="post">{% csrf_token %}
+    <label for="motivo-decisione">Motivazione (obbligatoria)</label>
+    <textarea id="motivo-decisione" name="motivo" required maxlength="1000"></textarea>
+    <button type="submit" name="azione" value="approva">Approva per questo studente</button>
+    <button type="submit" name="azione" value="respingi" class="respingi">Respingi</button>
+  </form>
+  <p class="sottotitolo">Se approvi, l'app diventa consentita solo sul tablet di questo studente.</p>
+  {% endif %}
+{% else %}
+<div class="decisione">{% if r.status == "approved" %}<span class="stato ok">approvata</span>{% else %}<span class="stato ko">respinta</span>{% endif %}
+  {% if r.decided_by %} da {{ r.decided_by.get_full_name|default:r.decided_by.username }}{% endif %} il {{ r.decided_at|date:"j/n/Y H:i" }}<br>{{ r.decision_reason }}</div>
+{% endif %}
+{% endblock %}

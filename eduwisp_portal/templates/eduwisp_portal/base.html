@@ -39,6 +39,9 @@
     {% elif vista.organization %}
       <span class="contesto">{{ vista.role_label }} · {{ vista.organization }}</span>
     {% endif %}
+    {% if richieste_in_attesa is not None %}
+      <a href="{% url 'eduwisp_portal:richieste' %}">Richieste di app{% if richieste_in_attesa %} <span class="contatore">{{ richieste_in_attesa }}</span>{% endif %}</a>
+    {% endif %}
     {% if not vista.vedi_come %}
     <form method="post" action="{% url 'eduwisp_portal:esci' %}">{% csrf_token %}<button type="submit" class="link">Esci ({{ user.username }})</button></form>
     {% endif %}

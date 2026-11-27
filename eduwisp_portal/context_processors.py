@@ -12,6 +12,7 @@ def portale(request):
     return {
         "vista": vista,
         "sola_lettura": is_read_only_account(request.user),
+        "richieste_in_attesa": _richieste_in_attesa(vista),
         "mie_appartenenze": [] if vista.vedi_come else appartenenze(request.user),
         "ruoli_vedi_come": [(r, etichetta) for r, (etichetta, _) in RUOLI.items()],
     }
@@ -26,3 +27,18 @@ def _accesso_demo():
         return False
     gruppo = getattr(settings, "EDUWISP_READ_ONLY_GROUP", "sola-lettura")
     return get_user_model().objects.filter(username="demo", groups__name=gruppo).exists()
+
+
+def _richieste_in_attesa(vista):
+    """Numero di richieste di app in attesa visibili alla persona (ADR-0021)."""
+    from eduwisp_apps.models import RequestStatus
+    from eduwisp_apps.requests import visible_requests
+    from eduwisp_users.models import Role
+
+    if vista.role not in (Role.SCHOOL_ADMIN, Role.TEACHER, Role.GUARDIAN):
+        return None
+    return (
+        visible_requests(vista.user, vista.role, vista.organization)
+        .filter(status=RequestStatus.IN_ATTESA)
+        .count()
+    )

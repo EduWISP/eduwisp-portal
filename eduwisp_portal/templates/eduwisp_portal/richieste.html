@@ -1,0 +1,24 @@
+{% extends "eduwisp_portal/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later #}
+{% block title %}Richieste di app{% endblock %}
+{% block content %}
+<h1>Richieste di app</h1>
+<p class="sottotitolo">{% if vista.role == "guardian" %}Le richieste dei tuoi figli. Puoi dare un parere favorevole; decide un docente della classe.{% elif vista.role == "teacher" %}Le richieste degli studenti delle tue classi: decidi con una motivazione.{% else %}Tutte le richieste dell'istituto, con pareri e decisioni.{% endif %}</p>
+<table>
+  <thead><tr><th>App</th><th>Studente</th><th>Classe</th><th>Chiesta</th><th>Stato</th><th>Pareri</th></tr></thead>
+  <tbody>
+  {% for r in richieste %}
+    <tr>
+      <td><a href="{% url 'eduwisp_portal:richiesta' r.pk %}">{{ r.name|default:r.identifier }}</a></td>
+      <td>{{ r.student.display_name }}</td>
+      <td>{{ r.school_class|default:"—" }}</td>
+      <td>{{ r.created_at|date:"j/n/Y H:i" }}</td>
+      <td>{% if r.status == "pending" %}<span class="stato attenzione">in attesa</span>{% elif r.status == "approved" %}<span class="stato ok">approvata</span>{% else %}<span class="stato ko">respinta</span>{% endif %}</td>
+      <td class="num">{{ r.opinions.count }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="6">Nessuna richiesta.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

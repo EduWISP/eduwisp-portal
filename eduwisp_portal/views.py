@@ -13,7 +13,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from eduwisp_apps.models import TemporaryUnlock
+from eduwisp_apps.models import AppRule, TemporaryUnlock
 from eduwisp_apps.unlocks import (
     DURATE_MINUTI,
     active_unlocks,
@@ -259,6 +259,18 @@ def docente(request):
     )
 
 
+def obbligatorie_della_classe(c):
+    """Pk delle app del catalogo dell'istituto obbligatorie per la classe (ADR-0020)."""
+    ambito = Q(track__isnull=True, school_class__isnull=True) | Q(school_class=c)
+    if c.section.track_id:
+        ambito |= Q(track_id=c.section.track_id)
+    return set(
+        AppRule.objects.filter(ambito, organization=c.organization, required=True).values_list(
+            "app_id", flat=True
+        )
+    )
+
+
 def _classe_consentita(vista, pk):
     if vista.role == Role.SCHOOL_ADMIN:
         consentite = SchoolClass.objects.filter(organization=vista.organization)
@@ -292,6 +304,7 @@ def classe(request, pk):
             "condivisi": [a.device for a in assegnazioni if not a.student_id],
             "limite": timezone.now() - timedelta(hours=ORE_SENZA_CONTATTO),
             "app_consentite": allowed_apps_for_class(c),
+            "obbligatorie": obbligatorie_della_classe(c),
             "sblocchi": active_unlocks(c),
             "app_sbloccabili": unlockable_apps(c).order_by("name")
             if vista.role == Role.TEACHER

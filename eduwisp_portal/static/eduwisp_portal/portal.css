@@ -42,3 +42,7 @@ main form button { margin-top: 1em; }
 footer { text-align: center; color: var(--tenue); font-size: .85em; padding: 1em 2em 2em; }
 .conferma { background: #d1fae5; color: #065f46; padding: .5em 1em; border-radius: 4px; }
 .banner-sola-lettura { background: #1e3a8a; color: #fff; padding: .5em 2em; text-align: center; }
+.app-elenco { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .4em 1.2em; }
+.app-elenco li { display: flex; align-items: center; gap: .4em; }
+.app-elenco img { border-radius: 5px; }
+.app-segnaposto { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 5px; background: var(--blu); color: #fff; font-size: .8em; font-weight: 700; }

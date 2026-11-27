@@ -6,3 +6,4 @@
 - Famiglia: per i figli maggiorenni senza consenso il portale mostra solo che sono maggiorenni, senza dati (ADR-0018). / *Adult children without consent: name and notice only.*
 - App consentite (ADR-0019): nella pagina della classe le app consentite e gli sblocchi attivi; il docente sblocca un'app per la lezione e la richiude, solo nelle sue classi. Nuova dipendenza: eduwisp-apps. / *Allowed apps on the class page; teachers unlock and relock apps for their classes.*
 - Account in sola lettura (gruppo `sola-lettura`, per esempio l'utente «demo» dell'ambiente di prova): vede tutto e può usare il «vedi come», ma ogni modifica è rifiutata. / *Read-only accounts (e.g. the demo user).*
+- Loghi delle app e segno «obbligatoria» nella pagina della classe (ADR-0020). / *App logos and required badge on the class page.*

@@ -156,7 +156,7 @@ def catalogo(scuola):
     wiki = App.objects.create(
         organization=org, name="Enciclopedia", identifier="org.example.enciclopedia"
     )
-    AppRule.objects.create(organization=org, app=firefox)
+    AppRule.objects.create(organization=org, app=firefox, required=True)
     return {"firefox": firefox, "wiki": wiki}
 
 

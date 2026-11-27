@@ -6,13 +6,16 @@
 <h1>Classe {{ classe }}</h1>
 <p class="sottotitolo">{{ classe.section.track|default:"" }} · anno scolastico {{ classe.school_year.label }}</p>
 <h2>App</h2>
-<p>Consentite sempre in questa classe: {% for a in app_consentite %}{{ a.name }}{% if not forloop.last %}, {% endif %}{% empty %}nessuna app indicata dalla scuola{% endfor %}.</p>
+<ul class="app-elenco">
+{% for a in app_consentite %}<li>{% if a.icon %}<img src="{{ a.icon.url }}" alt="" width="24" height="24">{% else %}<span class="app-segnaposto" aria-hidden="true">{{ a.name|slice:":1" }}</span>{% endif %} {{ a.name }}{% if a.pk in obbligatorie %} <span class="stato ok">obbligatoria</span>{% endif %}</li>
+{% empty %}<li>Nessuna app indicata dalla scuola.</li>{% endfor %}
+</ul>
 {% if sblocchi %}
 <table>
   <thead><tr><th>Sbloccata ora</th><th>Fino alle</th><th>Da</th><th></th></tr></thead>
   <tbody>
   {% for s in sblocchi %}
-    <tr><td>{{ s.app.name }}</td><td>{{ s.ends_at|time:"H:i" }}</td><td>{{ s.teacher.get_full_name|default:s.teacher.username|default:"—" }}</td>
+    <tr><td>{% if s.app.icon %}<img src="{{ s.app.icon.url }}" alt="" width="20" height="20"> {% endif %}{{ s.app.name }}</td><td>{{ s.ends_at|time:"H:i" }}</td><td>{{ s.teacher.get_full_name|default:s.teacher.username|default:"—" }}</td>
     <td>{% if vista.role == "teacher" %}<form method="post" action="{% url 'eduwisp_portal:termina_sblocco' s.pk %}">{% csrf_token %}<button type="submit">Blocca ora</button></form>{% endif %}</td></tr>
   {% endfor %}
   </tbody>

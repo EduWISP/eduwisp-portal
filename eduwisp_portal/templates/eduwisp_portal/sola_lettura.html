@@ -3,5 +3,5 @@
 {% block title %}Sola lettura{% endblock %}
 {% block content %}
 <h1>Operazione non consentita</h1>
-<p>Durante il «vedi come» puoi solo guardare: nessuna modifica è possibile. Esci dalla vista per tornare al tuo account.</p>
+<p>{% if sola_lettura %}Questo account è in sola lettura: puoi guardare tutto, ma nessuna modifica è possibile.{% else %}Durante il «vedi come» puoi solo guardare: nessuna modifica è possibile. Esci dalla vista per tornare al tuo account.{% endif %}</p>
 {% endblock %}

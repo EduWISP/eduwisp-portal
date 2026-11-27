@@ -41,3 +41,4 @@ main form button { margin-top: 1em; }
 .accesso { max-width: 24em; }
 footer { text-align: center; color: var(--tenue); font-size: .85em; padding: 1em 2em 2em; }
 .conferma { background: #d1fae5; color: #065f46; padding: .5em 1em; border-radius: 4px; }
+.banner-sola-lettura { background: #1e3a8a; color: #fff; padding: .5em 2em; text-align: center; }

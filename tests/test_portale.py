@@ -220,3 +220,25 @@ def test_vedi_come_docente_non_sblocca(client, scuola, catalogo, admin_user, set
     )
     assert r.status_code == 403
     assert not TemporaryUnlock.objects.exists()
+
+
+def test_account_demo_in_sola_lettura(client, scuola, settings):
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import Group
+
+    settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
+    demo = get_user_model().objects.create_superuser("demo", password="demo")
+    demo.groups.add(Group.objects.create(name="sola-lettura"))
+    assert client.login(username="demo", password="demo")
+    testo = client.get("/", follow=True).content.decode()
+    assert "in sola lettura" in testo and "Amministrazione della piattaforma" in testo
+    # Nessuna modifica, nemmeno nell'amministrazione di Django
+    r = client.post("/admin/eduwisp_users/organization/add/", {"name": "X", "slug": "x"})
+    assert r.status_code == 403 and not Organization.objects.filter(slug="x").exists()
+    assert client.post("/admin/password_change/", {}).status_code == 403
+    # Il «vedi come» resta possibile, in sola lettura
+    r = client.post("/vedi-come/", {"ruolo": "teacher", "membership": scuola["m_docente"].pk})
+    assert r.status_code == 302
+    assert "Stai vedendo come" in client.get("/", follow=True).content.decode()
+    assert client.post("/vedi-come/esci/").status_code == 302
+    assert client.post("/esci/").status_code == 302

@@ -143,3 +143,114 @@ def test_famiglia_e_figlio_maggiorenne(client, scuola):
     figlio.save()
     testo = client.get("/famiglia/").content.decode()
     assert "Dispositivi della scuola" in testo and "È maggiorenne" not in testo
+
+
+@pytest.fixture
+def catalogo(scuola):
+    from eduwisp_apps.models import App, AppRule
+
+    org = scuola["org"]
+    firefox = App.objects.create(
+        organization=org, name="Browser di prova", identifier="org.example.browser"
+    )
+    wiki = App.objects.create(
+        organization=org, name="Enciclopedia", identifier="org.example.enciclopedia"
+    )
+    AppRule.objects.create(organization=org, app=firefox)
+    return {"firefox": firefox, "wiki": wiki}
+
+
+def test_docente_sblocca_e_richiude_un_app(client, scuola, catalogo):
+    from eduwisp_apps.models import TemporaryUnlock
+
+    client.force_login(scuola["docente"])
+    url = f"/classe/{scuola['c1a'].pk}/"
+    testo = client.get(url).content.decode()
+    assert (
+        "Browser di prova" in testo
+        and "Microsoft Teams" in testo
+        and "Sblocca per la lezione" in testo
+    )
+    r = client.post(url + "sblocca/", {"app": catalogo["wiki"].pk, "minuti": 60}, follow=True)
+    assert "Enciclopedia sbloccata per 60 minuti" in r.content.decode()
+    s = TemporaryUnlock.objects.get()
+    assert s.school_class == scuola["c1a"] and s.teacher == scuola["docente"]
+    assert AuditEvent.objects.filter(action=Action.APP_UNLOCK).count() == 1
+    r = client.post(f"/sblocco/{s.pk}/termina/", follow=True)
+    assert "di nuovo bloccata" in r.content.decode()
+    s.refresh_from_db()
+    assert s.ended_early_at is not None
+
+
+def test_docente_non_sblocca_in_altre_classi(client, scuola, catalogo):
+    client.force_login(scuola["docente"])
+    r = client.post(
+        f"/classe/{scuola['c1b'].pk}/sblocca/", {"app": catalogo["wiki"].pk, "minuti": 60}
+    )
+    assert r.status_code == 404
+    assert not AuditEvent.objects.filter(action=Action.APP_UNLOCK).exists()
+
+
+def test_durata_non_prevista_rifiutata(client, scuola, catalogo):
+    from eduwisp_apps.models import TemporaryUnlock
+
+    client.force_login(scuola["docente"])
+    client.post(f"/classe/{scuola['c1a'].pk}/sblocca/", {"app": catalogo["wiki"].pk, "minuti": 600})
+    assert not TemporaryUnlock.objects.exists()
+
+
+def test_preside_vede_le_app_ma_non_sblocca(client, scuola, catalogo):
+    client.force_login(scuola["preside"])
+    testo = client.get(f"/classe/{scuola['c1a'].pk}/").content.decode()
+    assert "Browser di prova" in testo and "Sblocca per la lezione" not in testo
+    r = client.post(
+        f"/classe/{scuola['c1a'].pk}/sblocca/", {"app": catalogo["wiki"].pk, "minuti": 60}
+    )
+    assert r.status_code == 404
+
+
+def test_vedi_come_docente_non_sblocca(client, scuola, catalogo, admin_user, settings):
+    from eduwisp_apps.models import TemporaryUnlock
+
+    settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
+    client.force_login(admin_user)
+    client.post("/vedi-come/", {"ruolo": "teacher", "membership": scuola["m_docente"].pk})
+    r = client.post(
+        f"/classe/{scuola['c1a'].pk}/sblocca/", {"app": catalogo["wiki"].pk, "minuti": 60}
+    )
+    assert r.status_code == 403
+    assert not TemporaryUnlock.objects.exists()
+
+
+def test_account_demo_in_sola_lettura(client, scuola, settings):
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import Group
+
+    settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
+    demo = get_user_model().objects.create_superuser("demo", password="demo")
+    demo.groups.add(Group.objects.create(name="sola-lettura"))
+    assert client.login(username="demo", password="demo")
+    testo = client.get("/", follow=True).content.decode()
+    assert "in sola lettura" in testo and "Amministrazione della piattaforma" in testo
+    # Nessuna modifica, nemmeno nell'amministrazione di Django
+    r = client.post("/admin/eduwisp_users/organization/add/", {"name": "X", "slug": "x"})
+    assert r.status_code == 403 and not Organization.objects.filter(slug="x").exists()
+    assert client.post("/admin/password_change/", {}).status_code == 403
+    # Il «vedi come» resta possibile, in sola lettura
+    r = client.post("/vedi-come/", {"ruolo": "teacher", "membership": scuola["m_docente"].pk})
+    assert r.status_code == 302
+    assert "Stai vedendo come" in client.get("/", follow=True).content.decode()
+    assert client.post("/vedi-come/esci/").status_code == 302
+    assert client.post("/esci/").status_code == 302
+
+
+def test_pagina_di_accesso_indica_l_utente_demo(client, db, settings):
+    from django.contrib.auth import get_user_model
+    from django.contrib.auth.models import Group
+
+    assert "utente <strong>demo</strong>" not in client.get("/accedi/").content.decode()
+    demo = get_user_model().objects.create_user("demo", password="demo")
+    demo.groups.add(Group.objects.create(name="sola-lettura"))
+    assert "utente <strong>demo</strong>" not in client.get("/accedi/").content.decode()
+    settings.EDUWISP_ENVIRONMENT_NOTICE = "Ambiente di prova"
+    assert "utente <strong>demo</strong>" in client.get("/accedi/").content.decode()

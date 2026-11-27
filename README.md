@@ -6,7 +6,7 @@
 
 Le pagine di EduWISP per **dirigente**, **docente** e **famiglia**, l'area dell'**amministratore di sistema** e il suo menu **«Vedi come»** in sola lettura ([ADR-0018](https://eduwisp.org/docs/decisioni/0018-interfaccia-per-ruoli/)).
 
-> 🧪 **Stato: prototipo v0.** Provalo su [demo.eduwisp.org](https://demo.eduwisp.org) (solo dati fittizi).
+> 🧪 **Stato: prototipo v0.** Provalo su [demo.eduwisp.org](https://demo.eduwisp.org) (solo dati fittizi) con utente **`demo`** e password **`demo`**, in sola lettura.
 
 🇬🇧 *Web pages for head teachers, teachers and families, the platform administrator area and a read-only, audited "view as" menu (ADR-0018). **Status: prototype v0.***
 
@@ -18,6 +18,8 @@ Le pagine di EduWISP per **dirigente**, **docente** e **famiglia**, l'area dell'
 | Dirigente (`school_admin`) | `/preside/` | tutte le classi dell'istituto, studenti e stato dei dispositivi |
 | Docente (`teacher`) | `/docente/` | solo le classi dei propri incarichi nell'anno in corso |
 | Famiglia (`guardian`) | `/famiglia/` | solo i propri figli e i dispositivi della scuola a loro affidati |
+
+Nella pagina di una classe compaiono le **app consentite**; il docente può **sbloccare un'app** del catalogo per la lezione (da 30 minuti a 4 ore) e richiuderla prima, solo nelle sue classi, con registrazione ([ADR-0019](https://eduwisp.org/docs/decisioni/0019-app-consentite/)).
 
 I permessi si controllano **sul server** in ogni pagina. Un accesso fuori ambito risponde 404 ed è registrato in [`eduwisp-audit`](https://github.com/EduWISP/eduwisp-audit). Chi ha più ruoli (per esempio docente e genitore) sceglie quale usare dal menu in alto.
 
@@ -53,7 +55,7 @@ Il ruolo [`ansible-eduwisp`](https://github.com/EduWISP/ansible-eduwisp) lo conf
 
 ## Dipendenze / Dependencies
 
-[`eduwisp-users`](https://github.com/EduWISP/eduwisp-users), [`eduwisp-school`](https://github.com/EduWISP/eduwisp-school), [`eduwisp-devices`](https://github.com/EduWISP/eduwisp-devices), [`eduwisp-audit`](https://github.com/EduWISP/eduwisp-audit)
+[`eduwisp-users`](https://github.com/EduWISP/eduwisp-users), [`eduwisp-school`](https://github.com/EduWISP/eduwisp-school), [`eduwisp-devices`](https://github.com/EduWISP/eduwisp-devices), [`eduwisp-audit`](https://github.com/EduWISP/eduwisp-audit), [`eduwisp-apps`](https://github.com/EduWISP/eduwisp-apps)
 
 ## Privacy
 

@@ -14,6 +14,7 @@ INSTALLED_APPS = [
     "eduwisp_school",
     "eduwisp_devices",
     "eduwisp_audit",
+    "eduwisp_apps",
     "eduwisp_portal",
     "rest_framework",
     "django.contrib.admin",

@@ -9,6 +9,7 @@
 </head>
 <body>
 {% if eduwisp_environment_notice %}<div class="avviso-ambiente" role="alert">{{ eduwisp_environment_notice }}</div>{% endif %}
+{% if sola_lettura %}<div class="banner-sola-lettura" role="status">Account dimostrativo <strong>in sola lettura</strong>: puoi guardare tutto, anche con «Vedi come», ma non modificare nulla.</div>{% endif %}
 {% if vista.vedi_come %}
 <div class="banner-vedi-come" role="status">
   <span>👁 <strong>Stai vedendo come</strong> {{ vista.user.get_full_name|default:vista.user.username }} · {{ vista.role_label }} · {{ vista.organization }}. <strong>Sola lettura</strong>, accesso registrato{% if vista.motivo %} (motivo: {{ vista.motivo }}){% endif %}.</span>
@@ -45,6 +46,7 @@
   {% endif %}
 </header>
 <main>
+{% if messages %}<div class="messaggi">{% for m in messages %}<p class="{% if m.tags == 'error' %}errore{% else %}conferma{% endif %}" role="status">{{ m }}</p>{% endfor %}</div>{% endif %}
 {% block content %}{% endblock %}
 </main>
 <footer>

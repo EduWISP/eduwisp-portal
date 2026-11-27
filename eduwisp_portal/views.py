@@ -291,7 +291,7 @@ def classe(request, pk):
             "studenti": [(s, personali.get(s.pk)) for s in studenti],
             "condivisi": [a.device for a in assegnazioni if not a.student_id],
             "limite": timezone.now() - timedelta(hours=ORE_SENZA_CONTATTO),
-            "app_consentite": allowed_apps_for_class(c).order_by("name"),
+            "app_consentite": allowed_apps_for_class(c),
             "sblocchi": active_unlocks(c),
             "app_sbloccabili": unlockable_apps(c).order_by("name")
             if vista.role == Role.TEACHER

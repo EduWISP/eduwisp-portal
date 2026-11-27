@@ -150,8 +150,12 @@ def catalogo(scuola):
     from eduwisp_apps.models import App, AppRule
 
     org = scuola["org"]
-    firefox = App.objects.create(organization=org, name="Firefox", identifier="org.mozilla.firefox")
-    wiki = App.objects.create(organization=org, name="Wikipedia", identifier="org.wikipedia")
+    firefox = App.objects.create(
+        organization=org, name="Browser di prova", identifier="org.example.browser"
+    )
+    wiki = App.objects.create(
+        organization=org, name="Enciclopedia", identifier="org.example.enciclopedia"
+    )
     AppRule.objects.create(organization=org, app=firefox)
     return {"firefox": firefox, "wiki": wiki}
 
@@ -162,9 +166,13 @@ def test_docente_sblocca_e_richiude_un_app(client, scuola, catalogo):
     client.force_login(scuola["docente"])
     url = f"/classe/{scuola['c1a'].pk}/"
     testo = client.get(url).content.decode()
-    assert "Firefox" in testo and "Sblocca per la lezione" in testo
+    assert (
+        "Browser di prova" in testo
+        and "Microsoft Teams" in testo
+        and "Sblocca per la lezione" in testo
+    )
     r = client.post(url + "sblocca/", {"app": catalogo["wiki"].pk, "minuti": 60}, follow=True)
-    assert "Wikipedia sbloccata per 60 minuti" in r.content.decode()
+    assert "Enciclopedia sbloccata per 60 minuti" in r.content.decode()
     s = TemporaryUnlock.objects.get()
     assert s.school_class == scuola["c1a"] and s.teacher == scuola["docente"]
     assert AuditEvent.objects.filter(action=Action.APP_UNLOCK).count() == 1
@@ -194,7 +202,7 @@ def test_durata_non_prevista_rifiutata(client, scuola, catalogo):
 def test_preside_vede_le_app_ma_non_sblocca(client, scuola, catalogo):
     client.force_login(scuola["preside"])
     testo = client.get(f"/classe/{scuola['c1a'].pk}/").content.decode()
-    assert "Firefox" in testo and "Sblocca per la lezione" not in testo
+    assert "Browser di prova" in testo and "Sblocca per la lezione" not in testo
     r = client.post(
         f"/classe/{scuola['c1a'].pk}/sblocca/", {"app": catalogo["wiki"].pk, "minuti": 60}
     )

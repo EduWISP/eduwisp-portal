@@ -354,3 +354,45 @@ def test_regola_per_studente_non_compare_tra_le_app_della_classe(client, scuola,
     elenco = testo.split('<ul class="app-elenco">', 1)[1].split("</ul>", 1)[0]
     # Non compare tra le app della classe né come obbligatoria: nessun legame con lo studente
     assert "Sintesi vocale" not in elenco
+
+
+def test_famiglia_isolata_da_altri_studenti_e_istituti(client, scuola, richiesta_anna):
+    """La famiglia vede rigorosamente solo i propri figli (ADR-0018): nessun altro studente,
+    nessuna classe, nessun altro istituto, nessuna pagina di altri ruoli."""
+    from eduwisp_apps.models import AppRequest
+    from eduwisp_school.models import Student, StudentEnrollment
+    from eduwisp_users.models import Membership, Role
+
+    org = scuola["org"]
+    compagno = Student.objects.create(organization=org, display_name="Verdi Marco")
+    StudentEnrollment.objects.create(organization=org, student=compagno, school_class=scuola["c1a"])
+    r_compagno = AppRequest.objects.create(
+        organization=org, student=compagno, school_class=scuola["c1a"], identifier="org.x.c"
+    )
+    org2 = Organization.objects.create(name="Istituto Altro", slug="altro")
+    m_org2 = Membership.objects.create(
+        user=scuola["docente"], organization=org2, role=Role.SCHOOL_ADMIN
+    )
+    client.force_login(scuola["genitore"])
+    # Scegliere il ruolo di un'altra persona non cambia nulla
+    client.post("/ruolo/", {"membership": m_org2.pk})
+    client.post("/ruolo/", {"membership": scuola["m_docente"].pk})
+    testo = client.get("/famiglia/").content.decode()
+    assert "Rossi Anna" in testo
+    for nome in ("Verdi Marco", "Bianchi Luca", "Istituto Altro"):
+        assert nome not in testo
+    richieste = client.get("/richieste/").content.decode()
+    assert "Dizionario di latino" in richieste and "org.x.c" not in richieste
+    assert client.get(f"/richieste/{r_compagno.pk}/").status_code == 404
+    client.post(f"/richieste/{r_compagno.pk}/", {"azione": "parere", "motivo": "x"})
+    assert not r_compagno.opinions.exists()
+    for url in (
+        "/preside/",
+        "/docente/",
+        f"/classe/{scuola['c1a'].pk}/",
+        f"/classe/{scuola['c1b'].pk}/",
+    ):
+        assert client.get(url).status_code == 404, url
+    assert client.get("/amministrazione/").status_code in (302, 403, 404)
+    assert client.get("/vedi-come/").status_code in (302, 403, 404)
+    assert AuditEvent.objects.filter(action=Action.ACCESS_DENIED).exists()
